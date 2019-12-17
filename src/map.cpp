@@ -4171,7 +4171,9 @@ item &map::add_item( const tripoint &p, item new_item )
 item map::water_from( const tripoint &p )
 {
     if( has_flag( "SALT_WATER", p ) ) {
-        return item( "salt_water", 0, item::INFINITE_CHARGES );
+        item ret( "salt_water", 0, item::INFINITE_CHARGES );
+        ret.set_flag( "BRACKISH" );
+        return ret;
     }
 
     const ter_id terrain_id = ter( p );
@@ -4201,6 +4203,7 @@ item map::water_from( const tripoint &p )
         if( one_in( poison_chance ) ) {
             ret.poison = rng( 1, 4 );
         }
+        ret.set_flag( "CLOUDY" );
         return ret;
     }
     if( furn( p ).obj().examine == &iexamine::water_source ) {

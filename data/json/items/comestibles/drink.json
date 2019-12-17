@@ -936,6 +936,7 @@
     "type": "COMESTIBLE",
     "name": "clean water",
     "name_plural": "clean water",
+    "conditional_names": [ { "type": "FLAG", "condition": "CLOUDY", "name": { "str": "cloudy %s", "str_pl": "cloudy %s" } } ],
     "description": "Fresh, clean water.  Truly the best thing to quench your thirst.",
     "color": "light_cyan"
   },

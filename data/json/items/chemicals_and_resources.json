@@ -347,6 +347,7 @@
     "id": "salt_water",
     "name": "salt water",
     "name_plural": "salt water",
+    "conditional_names": [ { "type": "FLAG", "condition": "BRACKISH", "name": { "str": "brackish %s", "str_pl": "brackish %s" } } ],
     "weight": "260 g",
     "color": "light_cyan",
     "container": "bottle_plastic",

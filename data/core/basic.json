@@ -12,6 +12,7 @@
     "category": "food",
     "name": "water",
     "name_plural": "water",
+    "conditional_names": [ { "type": "FLAG", "condition": "CLOUDY", "name": { "str": "cloudy %s", "str_pl": "cloudy %s" } } ],
     "description": "Water, the stuff of life, the best thirst-quencher available.  It would be safer to drink once purified.",
     "weight": 250,
     "volume": 1,

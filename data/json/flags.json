@@ -725,6 +725,22 @@
     "info": "This food is <bad>unappetizing</bad> in a way that <bad>can't be covered up by most cooking</bad>."
   },
   {
+    "id": "BRACKISH",
+    "type": "json_flag",
+    "context": [ "COMESTIBLE" ],
+    "craft_inherit": true,
+    "taste_mod": -8,
+    "info": "This <bad>doesn't taste right</bad> at all, probably due to the fact that it was <bad>sourced from swamp water</bad>."
+  },
+  {
+    "id": "CLOUDY",
+    "type": "json_flag",
+    "context": [ "COMESTIBLE" ],
+    "craft_inherit": true,
+    "taste_mod": -3,
+    "info": "This tastes a bit like <bad>sand</bad>. Probably because it has sand in it."
+  },
+  {
     "id": "RAW",
     "type": "json_flag",
     "context": [ "COMESTIBLE" ],
