@@ -1727,15 +1727,39 @@ bool Character::i_add_or_drop( item &it, int qty )
     return retval;
 }
 
-void Character::drop( int pos, const tripoint &where )
+std::list<item *> Character::get_dependent_worn_items( const item &it )
 {
-    const item &it = i_at( pos );
-    const int count = it.count();
+    std::list<item *> dependent;
+    // Adds dependent worn items recursively
+    const std::function<void( const item &it )> add_dependent = [&]( const item & it ) {
+        for( item &wit : worn ) {
+            if( &wit == &it || !wit.is_worn_only_with( it ) ) {
+                continue;
+            }
+            const auto iter = std::find_if( dependent.begin(), dependent.end(),
+            [&wit]( const item * dit ) {
+                return &wit == dit;
+            } );
+            if( iter == dependent.end() ) { // Not in the list yet
+                add_dependent( wit );
+                dependent.push_back( &wit );
+            }
+        }
+    };
 
-    drop( { std::make_pair( pos, count ) }, where );
+    if( is_worn( it ) ) {
+        add_dependent( it );
+    }
+
+    return dependent;
 }
 
-void Character::drop( const std::list<std::pair<int, int>> &what, const tripoint &target,
+void Character::drop( item_location loc, const tripoint &where )
+{
+    drop( { std::make_pair( loc, loc->count() ) }, where );
+}
+
+void Character::drop( const std::list<std::pair<item_location, int>> &what, const tripoint &target,
                       bool stash )
 {
     const activity_id type( stash ? "ACT_STASH" : "ACT_DROP" );
@@ -1753,9 +1777,9 @@ void Character::drop( const std::list<std::pair<int, int>> &what, const tripoint
     assign_activity( type );
     activity.placement = target - pos();
 
-    for( auto item_pair : what ) {
-        if( can_unwield( i_at( item_pair.first ) ).success() ) {
-            activity.values.push_back( item_pair.first );
+    for( std::pair<item_location, int> item_pair : what ) {
+        if( can_unwield( *item_pair.first ).success() ) {
+            activity.targets.push_back( item_pair.first );
             activity.values.push_back( item_pair.second );
         }
     }
@@ -2565,6 +2589,57 @@ std::array<encumbrance_data, num_bp> Character::get_encumbrance( const item &new
 int Character::extraEncumbrance( const layer_level level, const int bp ) const
 {
     return encumbrance_cache[bp].layer_penalty_details[static_cast<int>( level )].total;
+}
+
+hint_rating Character::rate_action_change_side( const item &it ) const
+{
+    if( !is_worn( it ) ) {
+        return HINT_IFFY;
+    }
+
+    if( !it.is_sided() ) {
+        return HINT_CANT;
+    }
+
+    return HINT_GOOD;
+}
+
+bool Character::change_side( item &it, bool interactive )
+{
+    if( !it.swap_side() ) {
+        if( interactive ) {
+            add_msg_player_or_npc( m_info,
+                                   _( "You cannot swap the side on which your %s is worn." ),
+                                   _( "<npcname> cannot swap the side on which their %s is worn." ),
+                                   it.tname() );
+        }
+        return false;
+    }
+
+    if( interactive ) {
+        add_msg_player_or_npc( m_info, _( "You swap the side on which your %s is worn." ),
+                               _( "<npcname> swaps the side on which their %s is worn." ),
+                               it.tname() );
+    }
+
+    mod_moves( -250 );
+    reset_encumbrance();
+
+    return true;
+}
+
+bool Character::change_side( item_location &loc, bool interactive )
+{
+    if( !loc || !is_worn( *loc ) ) {
+        if( interactive ) {
+            add_msg_player_or_npc( m_info,
+                                   _( "You are not wearing that item." ),
+                                   _( "<npcname> isn't wearing that item." ) );
+        }
+        return false;
+    }
+
+    return change_side( *loc, interactive );
 }
 
 static void layer_item( std::array<encumbrance_data, num_bp> &vals,
