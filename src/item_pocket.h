@@ -26,7 +26,13 @@ class item_pocket
         item_pocket() = default;
         item_pocket( pocket_type ptype ) : type( ptype ) {}
 
+        bool stacks_with( const item_pocket &rhs ) const;
+
         bool is_type( pocket_type ptype ) const;
+        bool empty() const;
+
+        std::list<item *> all_items();
+        std::list<const item *> all_items() const;
 
         bool can_contain( const item &it ) const;
 
@@ -42,6 +48,7 @@ class item_pocket
         // removes and returns the item from the pocket.
         cata::optional<item> remove_item( const item &it );
         cata::optional<item> remove_item( const item_location &it );
+        void clear_items();
 
         // tries to put an item in the pocket. returns false if failure
         bool insert_item( const item &it );

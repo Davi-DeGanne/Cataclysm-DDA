@@ -63,11 +63,48 @@ void item_pocket::serialize( JsonOut &json ) const
     json.end_object();
 }
 
+bool item_pocket::stacks_with( const item_pocket &rhs ) const
+{
+    if( contents.size() != rhs.contents.size() ) {
+        return false;
+    }
+    return std::equal( contents.begin(), contents.end(), rhs.contents.begin(),
+    []( const item & a, const item & b ) {
+        return a.charges == b.charges && a.stacks_with( b );
+    } );
+}
+
 void item_pocket::deserialize( JsonIn &jsin )
 {
     JsonObject data = jsin.get_object();
     load( data );
     optional( data, was_loaded, "contents", contents );
+}
+
+std::list<item *> item_pocket::all_items()
+{
+    std::list<item *> all_items;
+    for( item &it : contents ) {
+        all_items.emplace_back( &it );
+    }
+    for( item *it : all_items ) {
+        std::list<item *> all_items_internal{ it->contents.all_items() };
+        all_items.insert( all_items.end(), all_items_internal.begin(), all_items_internal.end() );
+    }
+    return all_items;
+}
+
+std::list<const item *> item_pocket::all_items() const
+{
+    std::list<const item *> all_items;
+    for( const item &it : contents ) {
+        all_items.emplace_back( &it );
+    }
+    for( const item *it : all_items ) {
+        std::list<const item *> all_items_internal{ it->contents.all_items() };
+        all_items.insert( all_items.end(), all_items_internal.begin(), all_items_internal.end() );
+    }
+    return all_items;
 }
 
 units::volume item_pocket::remaining_volume() const
@@ -132,6 +169,16 @@ cata::optional<item> item_pocket::remove_item( const item_location &it )
         return cata::nullopt;
     }
     return remove_item( *it );
+}
+
+void item_pocket::clear_items()
+{
+    contents.clear();
+}
+
+bool item_pocket::empty() const
+{
+    return contents.empty();
 }
 
 void item_pocket::add( const item &it )

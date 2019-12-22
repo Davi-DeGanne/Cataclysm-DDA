@@ -28,6 +28,18 @@ void item_contents::deserialize( JsonIn &jsin )
     load( data );
 }
 
+bool item_contents::stacks_with( const item_contents &rhs ) const
+{
+    if( contents.size() != rhs.contents.size() ) {
+        return false;
+    }
+    return std::equal( contents.begin(), contents.end(),
+                       rhs.contents.begin(),
+    []( const item_pocket & a, const item_pocket & b ) {
+        return a.stacks_with( b );
+    } );
+}
+
 bool item_contents::can_contain( const item &it ) const
 {
     for( const item_pocket &pocket : contents ) {
@@ -36,6 +48,39 @@ bool item_contents::can_contain( const item &it ) const
         }
     }
     return false;
+}
+
+bool item_contents::empty() const
+{
+    if( contents.empty() ) {
+        return true;
+    }
+    for( const item_pocket &pocket : contents ) {
+        if( pocket.empty() ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::list<item *> item_contents::all_items()
+{
+    std::list<item *> item_list;
+    for( item_pocket &pocket : contents ) {
+        std::list<item *> contained_items = pocket.all_items();
+        item_list.insert( item_list.end(), contained_items.begin(), contained_items.end() );
+    }
+    return item_list;
+}
+
+std::list<const item *> item_contents::all_items() const
+{
+    std::list<const item *> item_list;
+    for( const item_pocket &pocket : contents ) {
+        std::list<item *> contained_items = pocket.all_items();
+        item_list.insert( item_list.end(), contained_items.begin(), contained_items.end() );
+    }
+    return item_list;
 }
 
 units::volume item_contents::item_size_modifier() const
@@ -73,6 +118,13 @@ cata::optional<item> item_contents::remove_item( const item_location &it )
         return cata::nullopt;
     }
     return remove_item( *it );
+}
+
+void item_contents::clear_items()
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.clear_items();
+    }
 }
 
 bool item_contents::insert_item( const item &it )

@@ -16,7 +16,14 @@ class item_contents
             return nestable;
         }
 
+        bool stacks_with( const item_contents &rhs ) const;
+
         bool can_contain( const item &it ) const;
+        bool empty() const;
+
+        // all the items contained in each pocket combined into one list
+        std::list<item *> all_items();
+        std::list<const item *> all_items() const;
 
         // total size the parent item needs to be modified based on rigidity of pockets
         units::volume item_size_modifier() const;
@@ -31,6 +38,7 @@ class item_contents
         bool insert_item( const item &it );
         // finds or makes a fake pocket and puts this item into it
         void insert_legacy( const item &it );
+        void clear_items();
 
         void load( const JsonObject &jo );
         void serialize( JsonOut &json ) const;
