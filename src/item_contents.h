@@ -8,10 +8,19 @@
 
 class item;
 class item_location;
+class player;
+
+enum tmperature_flag;
+
+struct tripoint;
 
 class item_contents
 {
     public:
+        item_contents() {
+            contents.emplace_back( item_pocket( item_pocket::pocket_type::LEGACY_CONTAINER ) );
+        }
+
         bool is_nestable() const {
             return nestable;
         }
@@ -22,13 +31,24 @@ class item_contents
         bool empty() const;
 
         // all the items contained in each pocket combined into one list
-        std::list<item *> all_items();
-        std::list<const item *> all_items() const;
+        std::list<item> all_items();
+        std::list<item> all_items() const;
 
         // total size the parent item needs to be modified based on rigidity of pockets
         units::volume item_size_modifier() const;
         // total weight the parent item needs to be modified based on weight modifiers of pockets
         units::mass item_weight_modifier() const;
+
+        item *magazine_current();
+        void casings_handle( const std::function<bool( item & )> &func );
+        bool use_amount( const itype_id &it, int &quantity, std::list<item> &used );
+        bool will_explode_in_a_fire() const;
+        bool detonate( const tripoint &p, std::vector<item> &drops );
+        bool process( const itype &type, player *carrier, const tripoint &pos, bool activate,
+                      float insulation, const temperature_flag flag );
+        bool legacy_unload( player *guy, bool &changed );
+        void remove_all_ammo( Character &guy );
+        void remove_all_mods( Character &guy );
 
         // removes and returns the item from the pocket.
         cata::optional<item> remove_item( const item &it );
@@ -38,7 +58,20 @@ class item_contents
         bool insert_item( const item &it );
         // finds or makes a fake pocket and puts this item into it
         void insert_legacy( const item &it );
+        // equivalent to contents.back() when item::contents was a std::list<item>
+        item &legacy_back();
+        const item &legacy_back() const;
+        item &legacy_front();
+        const item &legacy_front() const;
+        size_t legacy_size() const;
+        void legacy_pop_back();
+        size_t num_item_stacks() const;
+        bool spill_contents( const tripoint &pos );
         void clear_items();
+        bool has_item( const item &it ) const;
+        item *get_item_with( const std::function<bool( const item & )> &filter );
+        void remove_items_if( const std::function<bool( item & )> &filter );
+        void has_rotten_away( item &itm, const tripoint &pnt );
 
         void load( const JsonObject &jo );
         void serialize( JsonOut &json ) const;
@@ -46,6 +79,9 @@ class item_contents
 
         bool was_loaded;
     private:
+        // gets the pocket described as legacy, or creates one
+        item_pocket &legacy_pocket();
+        const item_pocket &legacy_pocket() const;
         // container can be placed into other containers
         bool nestable = true;
 

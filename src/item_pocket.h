@@ -6,10 +6,20 @@
 
 #include "enum_traits.h"
 #include "optional.h"
+#include "type_id.h"
 #include "units.h"
 
+class Character;
 class item;
+class itype;
 class item_location;
+class player;
+
+enum temperature_flag;
+
+struct tripoint;
+
+using itype_id = std::string;
 
 class item_pocket
 {
@@ -31,8 +41,15 @@ class item_pocket
         bool is_type( pocket_type ptype ) const;
         bool empty() const;
 
-        std::list<item *> all_items();
-        std::list<const item *> all_items() const;
+        std::list<item> all_items();
+        std::list<item> all_items() const;
+
+        item &back();
+        const item &back() const;
+        item &front();
+        const item &front() const;
+        size_t size() const;
+        void pop_back();
 
         bool can_contain( const item &it ) const;
 
@@ -45,10 +62,26 @@ class item_pocket
         units::volume item_size_modifier() const;
         units::mass item_weight_modifier() const;
 
+        item *magazine_current();
+        void casings_handle( const std::function<bool( item & )> &func );
+        bool use_amount( const itype_id &it, int &quantity, std::list<item> &used );
+        bool will_explode_in_a_fire() const;
+        bool detonate( const tripoint &p, std::vector<item> &drops );
+        bool process( const itype &type, player *carrier, const tripoint &pos, bool activate,
+                      float insulation, const temperature_flag flag );
+        bool legacy_unload( player *guy, bool &changed );
+        void remove_all_ammo( Character &guy );
+        void remove_all_mods( Character &guy );
+
         // removes and returns the item from the pocket.
         cata::optional<item> remove_item( const item &it );
         cata::optional<item> remove_item( const item_location &it );
+        bool spill_contents( const tripoint &pos );
         void clear_items();
+        bool has_item( const item &it ) const;
+        item *get_item_with( const std::function<bool( const item & )> &filter );
+        void remove_items_if( const std::function<bool( item & )> &filter );
+        void has_rotten_away( item &itm, const tripoint &pnt );
 
         // tries to put an item in the pocket. returns false if failure
         bool insert_item( const item &it );
@@ -73,6 +106,8 @@ class item_pocket
         float weight_multiplier = 1.0f;
         // base time it takes to pull an item out of the pocket
         int moves = 100;
+        // protects contents from exploding in a fire
+        bool fire_protection = false;
         // can hold liquids
         bool watertight = false;
         // can hold gas

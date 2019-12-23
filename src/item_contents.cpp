@@ -4,6 +4,7 @@
 #include "item.h"
 #include "item_pocket.h"
 #include "optional.h"
+#include "point.h"
 #include "units.h"
 
 void item_contents::load( const JsonObject &jo )
@@ -50,6 +51,80 @@ bool item_contents::can_contain( const item &it ) const
     return false;
 }
 
+item *item_contents::magazine_current()
+{
+    for( item_pocket &pocket : contents ) {
+        item *mag = pocket.magazine_current();
+        if( mag != nullptr ) {
+            return mag;
+        }
+    }
+    return nullptr;
+}
+
+void item_contents::casings_handle( const std::function<bool( item & )> &func )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.casings_handle( func );
+    }
+}
+
+bool item_contents::use_amount( const itype_id &it, int &quantity, std::list<item> &used )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.use_amount( it, quantity, used );
+    }
+}
+
+bool item_contents::will_explode_in_a_fire() const
+{
+    for( const item_pocket &pocket : contents ) {
+        if( pocket.will_explode_in_a_fire() ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool item_contents::detonate( const tripoint &p, std::vector<item> &drops )
+{
+    bool detonated = false;
+    for( item_pocket &pocket : contents ) {
+        detonated = pocket.detonate( p, drops ) || detonated;
+    }
+}
+
+bool item_contents::process( const itype &type, player *carrier, const tripoint &pos, bool activate,
+                             float insulation, const temperature_flag flag )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.process( type, carrier, pos, activate, insulation, flag );
+    }
+    return true;
+}
+
+bool item_contents::legacy_unload( player *guy, bool &changed )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.legacy_unload( guy, changed );
+    }
+    return true;
+}
+
+void item_contents::remove_all_ammo( Character &guy )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.remove_all_ammo( guy );
+    }
+}
+
+void item_contents::remove_all_mods( Character &guy )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.remove_all_mods( guy );
+    }
+}
+
 bool item_contents::empty() const
 {
     if( contents.empty() ) {
@@ -63,21 +138,78 @@ bool item_contents::empty() const
     return false;
 }
 
-std::list<item *> item_contents::all_items()
+item &item_contents::legacy_back()
 {
-    std::list<item *> item_list;
+    return legacy_pocket().back();
+}
+
+const item &item_contents::legacy_back() const
+{
+    return legacy_pocket().back();
+}
+
+item &item_contents::legacy_front()
+{
+    return legacy_pocket().front();
+}
+
+const item &item_contents::legacy_front() const
+{
+    return legacy_pocket().front();
+}
+
+size_t item_contents::legacy_size() const
+{
+    return legacy_pocket().size();
+}
+
+void item_contents::legacy_pop_back()
+{
+    legacy_pocket().pop_back();
+}
+
+size_t item_contents::num_item_stacks() const
+{
+    size_t num = 0;
+    for( const item_pocket &pocket : contents ) {
+        num += pocket.size();
+    }
+    return num;
+}
+
+item_pocket &item_contents::legacy_pocket()
+{
     for( item_pocket &pocket : contents ) {
-        std::list<item *> contained_items = pocket.all_items();
+        if( pocket.is_type( item_pocket::pocket_type::LEGACY_CONTAINER ) ) {
+            return pocket;
+        }
+    }
+}
+
+const item_pocket &item_contents::legacy_pocket() const
+{
+    for( const item_pocket &pocket : contents ) {
+        if( pocket.is_type( item_pocket::pocket_type::LEGACY_CONTAINER ) ) {
+            return pocket;
+        }
+    }
+}
+
+std::list<item> item_contents::all_items()
+{
+    std::list<item> item_list;
+    for( item_pocket &pocket : contents ) {
+        std::list<item> contained_items = pocket.all_items();
         item_list.insert( item_list.end(), contained_items.begin(), contained_items.end() );
     }
     return item_list;
 }
 
-std::list<const item *> item_contents::all_items() const
+std::list<item> item_contents::all_items() const
 {
-    std::list<const item *> item_list;
+    std::list<item> item_list;
     for( const item_pocket &pocket : contents ) {
-        std::list<item *> contained_items = pocket.all_items();
+        std::list<item> contained_items = pocket.all_items();
         item_list.insert( item_list.end(), contained_items.begin(), contained_items.end() );
     }
     return item_list;
@@ -99,6 +231,14 @@ units::mass item_contents::item_weight_modifier() const
         total_mass += pocket.item_weight_modifier();
     }
     return total_mass;
+}
+
+bool item_contents::spill_contents( const tripoint &pos )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.spill_contents( pos );
+    }
+    return true;
 }
 
 cata::optional<item> item_contents::remove_item( const item &it )
@@ -124,6 +264,41 @@ void item_contents::clear_items()
 {
     for( item_pocket &pocket : contents ) {
         pocket.clear_items();
+    }
+}
+
+bool item_contents::has_item( const item &it ) const
+{
+    for( const item_pocket &pocket : contents ) {
+        if( pocket.has_item( it ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+item *item_contents::get_item_with( const std::function<bool( const item & )> &filter )
+{
+    for( item_pocket &pocket : contents ) {
+        item *it = pocket.get_item_with( filter );
+        if( it != nullptr ) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+void item_contents::remove_items_if( const std::function<bool( item & )> &filter )
+{
+    for ( item_pocket &pocket : contents ) {
+        pocket.remove_items_if( filter );
+    }
+}
+
+void item_contents::has_rotten_away( item &itm, const tripoint &pnt )
+{
+    for( item_pocket &pocket : contents ) {
+        pocket.has_rotten_away( itm, pnt );
     }
 }
 
