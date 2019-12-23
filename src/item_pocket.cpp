@@ -1,6 +1,7 @@
 #include "item_pocket.h"
 
 #include "assign.h"
+#include "crafting.h"
 #include "enums.h"
 #include "game.h"
 #include "generic_factory.h"
@@ -11,8 +12,6 @@
 #include "player.h"
 #include "point.h"
 #include "units.h"
-
-void drop_or_handle( const item &newit, Character &p );
 
 namespace io
 {
