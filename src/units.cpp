@@ -1,6 +1,7 @@
 #include "json.h"
 #include "units.h"
 
+template<>
 void units::volume::serialize( JsonOut &jsout ) const
 {
     if( value_ % 1000 == 0 ) {
@@ -10,6 +11,7 @@ void units::volume::serialize( JsonOut &jsout ) const
     }
 }
 
+template<>
 void units::mass::serialize( JsonOut &jsout ) const
 {
     if( value_ % 1000000 == 0 ) {
