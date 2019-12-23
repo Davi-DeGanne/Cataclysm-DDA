@@ -1053,7 +1053,7 @@ void show_pickup_message( const PickupMap &mapPickup )
 bool Pickup::handle_spillable_contents( Character &c, item &it, map &m )
 {
     if( it.is_bucket_nonempty() ) {
-        const item &it_cont = it.contents.front();
+        const item &it_cont = it.contents.legacy_front();
         int num_charges = it_cont.charges;
         while( !it.spill_contents( c ) ) {
             if( num_charges > it_cont.charges ) {

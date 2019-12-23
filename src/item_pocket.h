@@ -87,6 +87,9 @@ class item_pocket
         bool insert_item( const item &it );
         void add( const item &it );
 
+        // only available to help with migration from previous usage of std::list<item>
+        std::list<item> &edit_contents();
+
         void load( const JsonObject &jo );
         void serialize( JsonOut &json ) const;
         void deserialize( JsonIn &jsin );

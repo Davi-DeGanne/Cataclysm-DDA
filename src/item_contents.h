@@ -59,6 +59,7 @@ class item_contents
         // finds or makes a fake pocket and puts this item into it
         void insert_legacy( const item &it );
         // equivalent to contents.back() when item::contents was a std::list<item>
+        std::list<item> &legacy_items();
         item &legacy_back();
         const item &legacy_back() const;
         item &legacy_front();

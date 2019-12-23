@@ -380,6 +380,11 @@ void item_pocket::add( const item &it )
     contents.emplace_back( it );
 }
 
+std::list<item> &item_pocket::edit_contents()
+{
+    return contents;
+}
+
 bool item_pocket::insert_item( const item &it )
 {
     if( type == LEGACY_CONTAINER ) {

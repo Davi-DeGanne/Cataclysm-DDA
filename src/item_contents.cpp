@@ -324,3 +324,8 @@ void item_contents::insert_legacy( const item &it )
     fake_pocket.add( it );
     contents.emplace_front( fake_pocket );
 }
+
+std::list<item> &item_contents::legacy_items()
+{
+    return legacy_pocket().edit_contents();
+}

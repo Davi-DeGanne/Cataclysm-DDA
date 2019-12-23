@@ -1968,7 +1968,7 @@ void talk_effect_fun_t::set_u_buy_item( const std::string &item_name, int cost, 
             }
         } else {
             item container( container_name, calendar::turn );
-            container.emplace_back( item_name, calendar::turn, count );
+            container.contents.insert_legacy( item( item_name, calendar::turn, count ) );
             u.i_add( container );
             //~ %1%s is the NPC name, %2$s is an item
             popup( _( "%1$s gives you a %2$s." ), p.name, container.tname() );
@@ -2042,7 +2042,7 @@ void talk_effect_fun_t::set_consume_item( const JsonObject &jo, const std::strin
     };
 }
 
-void talk_effect_fun_t::set_remove_item_with( const JsonObject &jo, const std::string &member,
+void talk_effect_fun_t::set_remove_items_if( const JsonObject &jo, const std::string &member,
         bool is_npc )
 {
     const std::string &item_name = jo.get_string( member );
@@ -2457,7 +2457,7 @@ void talk_effect_t::parse_sub_effect( const JsonObject &jo )
         subeffect_fun.set_u_spend_cash( cash_change );
     } else if( jo.has_string( "u_sell_item" ) || jo.has_string( "u_buy_item" ) ||
                jo.has_string( "u_consume_item" ) || jo.has_string( "npc_consume_item" ) ||
-               jo.has_string( "u_remove_item_with" ) || jo.has_string( "npc_remove_item_with" ) ) {
+               jo.has_string( "u_remove_items_if" ) || jo.has_string( "npc_remove_items_if" ) ) {
         int cost = 0;
         if( jo.has_int( "cost" ) ) {
             cost = jo.get_int( "cost" );
@@ -2480,10 +2480,10 @@ void talk_effect_t::parse_sub_effect( const JsonObject &jo )
             subeffect_fun.set_consume_item( jo, "u_consume_item", count );
         } else if( jo.has_string( "npc_consume_item" ) ) {
             subeffect_fun.set_consume_item( jo, "npc_consume_item", count, is_npc );
-        } else if( jo.has_string( "u_remove_item_with" ) ) {
-            subeffect_fun.set_remove_item_with( jo, "u_remove_item_with" );
-        } else if( jo.has_string( "npc_remove_item_with" ) ) {
-            subeffect_fun.set_remove_item_with( jo, "npc_remove_item_with", is_npc );
+        } else if( jo.has_string( "u_remove_items_if" ) ) {
+            subeffect_fun.set_remove_items_if( jo, "u_remove_items_if" );
+        } else if( jo.has_string( "npc_remove_items_if" ) ) {
+            subeffect_fun.set_remove_items_if( jo, "npc_remove_items_if", is_npc );
         }
     } else if( jo.has_string( "npc_change_class" ) ) {
         std::string class_name = jo.get_string( "npc_change_class" );
@@ -3149,7 +3149,7 @@ static consumption_result try_consume( npc &p, item &it, std::string &reason )
 {
     // TODO: Unify this with 'player::consume_item()'
     bool consuming_contents = it.is_container() && !it.contents.empty();
-    item &to_eat = consuming_contents ? it.contents.front() : it;
+    item &to_eat = consuming_contents ? it.contents.legacy_front() : it;
     const auto &comest = to_eat.get_comestible();
     if( !comest ) {
         // Don't inform the player that we don't want to eat the lighter
@@ -3201,7 +3201,7 @@ static consumption_result try_consume( npc &p, item &it, std::string &reason )
     }
 
     if( consuming_contents ) {
-        it.contents.erase( it.contents.begin() );
+        it.contents.remove_item( it.contents.legacy_front() );
         return CONSUMED_SOME;
     }
 
