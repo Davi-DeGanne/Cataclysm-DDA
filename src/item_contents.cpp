@@ -290,7 +290,7 @@ item *item_contents::get_item_with( const std::function<bool( const item & )> &f
 
 void item_contents::remove_items_if( const std::function<bool( item & )> &filter )
 {
-    for ( item_pocket &pocket : contents ) {
+    for( item_pocket &pocket : contents ) {
         pocket.remove_items_if( filter );
     }
 }
