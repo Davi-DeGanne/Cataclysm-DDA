@@ -8502,7 +8502,8 @@ int iuse::multicooker( player *p, item *it, bool t, const tripoint &pos )
         }
 
         if( cooktime <= 0 ) {
-            item &meal = it->emplace_back( it->get_var( "DISH" ) );
+            it->contents.insert_legacy( item( it->get_var( "DISH" ) ) );
+            item &meal = it->contents.legacy_back();
             if( ( *recipe_id( it->get_var( "RECIPE" ) ) ).hot_result() ) {
                 meal.heat_up();
             } else {

@@ -94,7 +94,7 @@ std::list<item> item_pocket::all_items()
 {
     std::list<item> all_items;
     for( item &it : contents ) {
-        all_items.emplace_back( &it );
+        all_items.emplace_back( it );
     }
     for( item &it : all_items ) {
         std::list<item> all_items_internal{ it.contents.all_items() };
@@ -107,7 +107,7 @@ std::list<item> item_pocket::all_items() const
 {
     std::list<item> all_items;
     for( const item &it : contents ) {
-        all_items.emplace_back( &it );
+        all_items.emplace_back( it );
     }
     for( const item &it : all_items ) {
         std::list<item> all_items_internal{ it.contents.all_items() };
@@ -198,13 +198,16 @@ void item_pocket::casings_handle( const std::function<bool( item & )> &func )
 
 bool item_pocket::use_amount( const itype_id &it, int &quantity, std::list<item> &used )
 {
+    bool used_item = false;
     for( auto a = contents.begin(); a != contents.end() && quantity > 0; ) {
         if( a->use_amount( it, quantity, used ) ) {
+            used_item = true;
             a = contents.erase( a );
         } else {
             ++a;
         }
     }
+    return used_item;
 }
 
 bool item_pocket::will_explode_in_a_fire() const
@@ -227,12 +230,14 @@ bool item_pocket::detonate( const tripoint &pos, std::vector<item> &drops )
         // If any of the contents explodes, so does the container
         return true;
     }
+    return false;
 }
 
 bool item_pocket::process( const itype &type, player *carrier, const tripoint &pos, bool activate,
                            float insulation, const temperature_flag flag )
 {
     const bool preserves = type.container && type.container->preserves;
+    bool processed = false;
     for( auto it = contents.begin(); it != contents.end(); ) {
         if( preserves ) {
             // Simulate that the item has already "rotten" up to last_rot_check, but as item::rot
@@ -241,10 +246,12 @@ bool item_pocket::process( const itype &type, player *carrier, const tripoint &p
         }
         if( it->process( carrier, pos, activate, type.insulation_factor * insulation, flag ) ) {
             it = contents.erase( it );
+            processed = true;
         } else {
             ++it;
         }
     }
+    return processed;
 }
 
 bool item_pocket::legacy_unload( player *guy, bool &changed )
@@ -359,7 +366,7 @@ void item_pocket::remove_items_if( const std::function<bool( item & )> &filter )
     contents.remove_if( filter );
 }
 
-void item_pocket::has_rotten_away( item &itm, const tripoint &pnt )
+void item_pocket::has_rotten_away( const tripoint &pnt )
 {
     for( auto it = contents.begin(); it != contents.end(); ) {
         if( g->m.has_rotten_away( *it, pnt ) ) {

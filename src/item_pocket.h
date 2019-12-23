@@ -4,6 +4,7 @@
 
 #include <list>
 
+#include "enums.h"
 #include "enum_traits.h"
 #include "optional.h"
 #include "type_id.h"
@@ -81,7 +82,7 @@ class item_pocket
         bool has_item( const item &it ) const;
         item *get_item_with( const std::function<bool( const item & )> &filter );
         void remove_items_if( const std::function<bool( item & )> &filter );
-        void has_rotten_away( item &itm, const tripoint &pnt );
+        void has_rotten_away( const tripoint &pnt );
 
         // tries to put an item in the pocket. returns false if failure
         bool insert_item( const item &it );

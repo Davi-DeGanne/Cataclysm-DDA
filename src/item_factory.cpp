@@ -2258,7 +2258,7 @@ void Item_factory::migrate_item( const itype_id &id, item &obj )
             if( obj.contents.get_item_with( [&]( const item & e ) {
             return e.typeId() != c;
             } ) == nullptr ) {
-                obj.emplace_back( c, obj.birthday() );
+                obj.contents.insert_legacy( item( c, obj.birthday() ) );
             }
         }
 

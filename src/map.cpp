@@ -6637,7 +6637,7 @@ bool map::has_rotten_away( item &itm, const tripoint &pnt ) const
         return false;
     } else {
         // Check and remove rotten contents, but always keep the container.
-        itm.contents.has_rotten_away( itm, pnt );
+        itm.contents.has_rotten_away( pnt );
 
         return false;
     }

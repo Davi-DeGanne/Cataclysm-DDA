@@ -7,6 +7,11 @@
 #include "point.h"
 #include "units.h"
 
+namespace fake_item
+{
+    static item_pocket none_pocket( item_pocket::pocket_type::LAST );
+} // namespace fake_item
+
 void item_contents::load( const JsonObject &jo )
 {
     optional( jo, was_loaded, "nestable", nestable, true );
@@ -71,9 +76,11 @@ void item_contents::casings_handle( const std::function<bool( item & )> &func )
 
 bool item_contents::use_amount( const itype_id &it, int &quantity, std::list<item> &used )
 {
+    bool used_item = false;
     for( item_pocket &pocket : contents ) {
-        pocket.use_amount( it, quantity, used );
+        used_item = pocket.use_amount( it, quantity, used ) || used_item;
     }
+    return used_item;
 }
 
 bool item_contents::will_explode_in_a_fire() const
@@ -92,6 +99,7 @@ bool item_contents::detonate( const tripoint &p, std::vector<item> &drops )
     for( item_pocket &pocket : contents ) {
         detonated = pocket.detonate( p, drops ) || detonated;
     }
+    return detonated;
 }
 
 bool item_contents::process( const itype &type, player *carrier, const tripoint &pos, bool activate,
@@ -184,6 +192,8 @@ item_pocket &item_contents::legacy_pocket()
             return pocket;
         }
     }
+    debugmsg( "Tried to access non-existing legacy pocket" );
+    return fake_item::none_pocket;
 }
 
 const item_pocket &item_contents::legacy_pocket() const
@@ -193,6 +203,8 @@ const item_pocket &item_contents::legacy_pocket() const
             return pocket;
         }
     }
+    debugmsg( "Tried to access non-existing legacy pocket" );
+    return fake_item::none_pocket;
 }
 
 std::list<item> item_contents::all_items()
@@ -295,10 +307,10 @@ void item_contents::remove_items_if( const std::function<bool( item & )> &filter
     }
 }
 
-void item_contents::has_rotten_away( item &itm, const tripoint &pnt )
+void item_contents::has_rotten_away( const tripoint &pnt )
 {
     for( item_pocket &pocket : contents ) {
-        pocket.has_rotten_away( itm, pnt );
+        pocket.has_rotten_away( pnt );
     }
 }
 

@@ -2,6 +2,7 @@
 #ifndef ITEM_CONTENTS_H
 #define ITEM_CONTENTS_H
 
+#include "enums.h"
 #include "item_pocket.h"
 #include "optional.h"
 #include "units.h"
@@ -9,8 +10,6 @@
 class item;
 class item_location;
 class player;
-
-enum tmperature_flag;
 
 struct tripoint;
 
@@ -72,7 +71,7 @@ class item_contents
         bool has_item( const item &it ) const;
         item *get_item_with( const std::function<bool( const item & )> &filter );
         void remove_items_if( const std::function<bool( item & )> &filter );
-        void has_rotten_away( item &itm, const tripoint &pnt );
+        void has_rotten_away( const tripoint &pnt );
 
         void load( const JsonObject &jo );
         void serialize( JsonOut &json ) const;

@@ -209,15 +209,17 @@ item::item( const itype *type, time_point turn, int qty ) : type( type ), bday( 
 
     if( type->gun ) {
         for( const std::string &mod : type->gun->built_in_mods ) {
-            emplace_back( mod, turn, qty ).item_tags.insert( "IRREMOVABLE" );
+            item it( mod, turn, qty );
+            it.item_tags.insert( "IRREMOVABLE" );
+            contents.insert_legacy( it );
         }
         for( const std::string &mod : type->gun->default_mods ) {
-            emplace_back( mod, turn, qty );
+            contents.insert_legacy( item( mod, turn, qty ) );
         }
 
     } else if( type->magazine ) {
         if( type->magazine->count > 0 ) {
-            emplace_back( type->magazine->default_ammo, calendar::turn, type->magazine->count );
+            contents.insert_legacy( item( type->magazine->default_ammo, calendar::turn, type->magazine->count ) );
         }
 
     } else if( has_temperature() || goes_bad() ) {
@@ -437,7 +439,7 @@ item &item::ammo_set( const itype_id &ammo, int qty )
 
     if( is_magazine() ) {
         ammo_unset();
-        emplace_back( ammo, calendar::turn, std::min( qty, ammo_capacity() ) );
+        contents.insert_legacy( item( ammo, calendar::turn, std::min( qty, ammo_capacity() ) ) );
         if( has_flag( "NO_UNLOAD" ) ) {
             contents.legacy_back().item_tags.insert( "NO_DROP" );
             contents.legacy_back().item_tags.insert( "IRREMOVABLE" );
@@ -477,7 +479,7 @@ item &item::ammo_set( const itype_id &ammo, int qty )
                     }
                 }
             }
-            emplace_back( mag );
+            contents.insert_item( item( mag ) );
         }
         magazine_current()->ammo_set( ammo, qty );
     }
@@ -5704,7 +5706,7 @@ static Item *get_food_impl( Item *it )
     if( it->is_food() ) {
         return it;
     } else if( it->is_food_container() && !it->contents.empty() ) {
-        return &it->contents.front();
+        return &it->contents.legacy_front();
     } else {
         return nullptr;
     }

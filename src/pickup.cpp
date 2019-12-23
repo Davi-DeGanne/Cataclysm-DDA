@@ -158,7 +158,7 @@ static pickup_answer handle_problematic_pickup( const item &it, bool &offered_sw
     }
     if( it.is_bucket_nonempty() ) {
         amenu.addentry( SPILL, u.can_pickVolume( it ), 's', _( "Spill %s, then pick up %s" ),
-                        it.contents.front().tname(), it.display_name() );
+                        it.contents.legacy_front().tname(), it.display_name() );
     }
 
     amenu.query();
