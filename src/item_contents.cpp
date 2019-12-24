@@ -9,7 +9,7 @@
 
 namespace fake_item
 {
-    static item_pocket none_pocket( item_pocket::pocket_type::LAST );
+static item_pocket none_pocket( item_pocket::pocket_type::LAST );
 } // namespace fake_item
 
 void item_contents::load( const JsonObject &jo )
