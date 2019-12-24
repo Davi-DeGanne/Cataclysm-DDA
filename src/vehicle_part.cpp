@@ -241,7 +241,8 @@ int vehicle_part::ammo_set( const itype_id &ammo, int qty )
         base.contents.clear_items();
         const auto stack = units::legacy_volume_factor / std::max( liquid->stack_size, 1 );
         const int limit = units::from_milliliter( ammo_capacity() ) / stack;
-        base.contents.insert_legacy( item( ammo, calendar::turn, qty > 0 ? std::min( qty, limit ) : limit ) );
+        base.contents.insert_legacy( item( ammo, calendar::turn, qty > 0 ? std::min( qty,
+                                           limit ) : limit ) );
         return qty;
     }
 

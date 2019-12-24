@@ -3230,7 +3230,8 @@ static bool damage_item( player &pl, item_location &fix )
         if( fix.where() == item_location::type::character ) {
             pl.i_rem_keep_contents( pl.get_item_position( fix.get_item() ) );
         } else {
-            put_into_vehicle_or_drop( pl, item_drop_reason::deliberate, fix->contents.all_items(), fix.position() );
+            put_into_vehicle_or_drop( pl, item_drop_reason::deliberate, fix->contents.all_items(),
+                                      fix.position() );
             fix.remove_item();
         }
 

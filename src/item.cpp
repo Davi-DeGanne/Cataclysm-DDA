@@ -219,7 +219,8 @@ item::item( const itype *type, time_point turn, int qty ) : type( type ), bday( 
 
     } else if( type->magazine ) {
         if( type->magazine->count > 0 ) {
-            contents.insert_legacy( item( type->magazine->default_ammo, calendar::turn, type->magazine->count ) );
+            contents.insert_legacy( item( type->magazine->default_ammo, calendar::turn,
+                                          type->magazine->count ) );
         }
 
     } else if( has_temperature() || goes_bad() ) {
