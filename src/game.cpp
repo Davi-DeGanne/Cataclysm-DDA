@@ -1942,18 +1942,17 @@ void game::handle_key_blocking_activity()
 /* item submenu for 'i' and '/'
 * It use draw_item_info to draw item info and action menu
 *
-* @param pos position of item in inventory
+* @param locThisItem the item
 * @param iStartX Left coordinate of the item info window
 * @param iWidth width of the item info window (height = height of terminal)
 * @return getch
 */
-int game::inventory_item_menu( int pos, int iStartX, int iWidth,
+int game::inventory_item_menu( item_location locThisItem, int iStartX, int iWidth,
                                const inventory_item_menu_positon position )
 {
     int cMenu = static_cast<int>( '+' );
 
-    item &oThisItem = u.i_at( pos );
-    item_location locThisItem( u, &oThisItem );
+    item &oThisItem = *locThisItem;
     if( u.has_item( oThisItem ) ) {
 #if defined(__ANDROID__)
         if( get_option<bool>( "ANDROID_INVENTORY_AUTOADD" ) ) {
@@ -2089,13 +2088,13 @@ int game::inventory_item_menu( int pos, int iStartX, int iWidth,
                     avatar_action::plthrow( u, locThisItem );
                     break;
                 case 'c':
-                    change_side( pos );
+                    u.change_side( locThisItem );
                     break;
                 case 'T':
                     u.takeoff( oThisItem );
                     break;
                 case 'd':
-                    u.drop( pos, u.pos() );
+                    u.drop( locThisItem, u.pos() );
                     break;
                 case 'U':
                     unload( oThisItem );
@@ -8337,22 +8336,6 @@ void game::butcher()
     }
 }
 
-void game::change_side( int pos )
-{
-    if( pos == INT_MIN ) {
-        auto filter = [&]( const item & it ) {
-            return u.is_worn( it ) && it.is_sided();
-        };
-        pos = u.get_item_position( game_menus::inv::titled_filter_menu( filter, u,
-                                   _( "Change side for item" ), _( "You don't have sided items worn." ) ).get_item() );
-    }
-    if( pos == INT_MIN ) {
-        add_msg( _( "Never mind." ) );
-        return;
-    }
-    u.change_side( pos );
-}
-
 void game::reload( item_location &loc, bool prompt, bool empty )
 {
     item *it = loc.get_item();
@@ -8408,7 +8391,7 @@ void game::reload( item_location &loc, bool prompt, bool empty )
 
     // for holsters and ammo pouches try to reload any contained item
     if( it->type->can_use( "holster" ) && !it->contents.empty() ) {
-        it = &it->contents.front();
+        it = &it->contents.legacy_front();
     }
 
     // for bandoliers we currently defer to iuse_actor methods

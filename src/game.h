@@ -568,7 +568,7 @@ class game
             RIGHT_OF_INFO,
             LEFT_TERMINAL_EDGE,
         };
-        int inventory_item_menu( int pos, int startx = 0, int width = 50,
+        int inventory_item_menu( item_location locThisItem, int startx = 0, int width = 50,
                                  inventory_item_menu_positon position = RIGHT_OF_INFO );
 
         /** Custom-filtered menu for inventory and nearby items and those that within specified radius */
@@ -769,7 +769,6 @@ class game
 
         void butcher(); // Butcher a corpse  'B'
 
-        void change_side( int pos = INT_MIN ); // Change the side on which an item is worn 'c'
         void reload( item_location &loc, bool prompt = false, bool empty = true );
     public:
         void reload_item(); // Reload an item

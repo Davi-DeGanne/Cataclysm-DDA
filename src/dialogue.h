@@ -107,7 +107,7 @@ struct talk_effect_fun_t {
         void set_u_sell_item( const std::string &item_name, int cost, int count );
         void set_consume_item( const JsonObject &jo, const std::string &member, int count,
                                bool is_npc = false );
-        void set_remove_item_with( const JsonObject &jo, const std::string &member, bool is_npc = false );
+        void set_remove_items_if( const JsonObject &jo, const std::string &member, bool is_npc = false );
         void set_npc_change_faction( const std::string &faction_name );
         void set_npc_change_class( const std::string &class_name );
         void set_change_faction_rep( int rep_change );

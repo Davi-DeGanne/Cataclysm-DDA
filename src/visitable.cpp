@@ -364,7 +364,7 @@ static VisitResponse visit_internal( const std::function<VisitResponse( item *, 
                 return VisitResponse::NEXT;
             }
 
-            for( auto &e : node->contents ) {
+            for( item &e : node->contents.all_items() ) {
                 if( visit_internal( func, &e, node ) == VisitResponse::ABORT ) {
                     return VisitResponse::ABORT;
                 }
@@ -510,9 +510,10 @@ item visitable<T>::remove_item( item &it )
 static void remove_internal( const std::function<bool( item & )> &filter, item &node, int &count,
                              std::list<item> &res )
 {
-    for( auto it = node.contents.begin(); it != node.contents.end(); ) {
+    std::list<item> all_contents = node.contents.all_items();
+    for( auto it = all_contents.begin(); it != all_contents.end(); ) {
         if( filter( *it ) ) {
-            res.splice( res.end(), node.contents, it++ );
+            res.splice( res.end(), all_contents, it++ );
             if( --count == 0 ) {
                 return;
             }
